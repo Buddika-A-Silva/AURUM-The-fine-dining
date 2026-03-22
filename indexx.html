@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aurum — Fine Dining</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Cinzel:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
+:root {
+  --gold:#C9A84C; --gold2:#E2C47A; --gold3:rgba(201,168,76,.15);
+  --bg:#0B0906; --bg2:#111009; --bg3:#181208;
+  --surface:rgba(20,15,6,.88); --border:rgba(201,168,76,.18);
+  --txt:#F2E8D0; --muted:#998060; --nav:rgba(11,9,6,.93);
+  --shadow:0 24px 80px rgba(0,0,0,.6);
+  --glow:0 0 40px rgba(201,168,76,.22);
+}
+[data-theme="light"] {
+  --bg:#F4EDDA; --bg2:#EDE1C4; --bg3:#E6D8B8;
+  --surface:rgba(244,237,218,.93); --border:rgba(150,110,40,.22);
+  --txt:#1C1408; --muted:#7A5C2A; --nav:rgba(244,237,218,.95);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden;transition:background .45s,color .45s}
+
+/* ═══════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════ */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+
+/* ═══════════════════════════════════════
+   LOADER
+═══════════════════════════════════════ */
+#loader{
+  position:fixed;inset:0;z-index:9999;
+  background:#0B0906;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6rem;
+  transition:opacity .9s,visibility .9s;
+}
+#loader.out{opacity:0;visibility:hidden}
+.ld-word{font-family:'Cinzel',serif;font-size:2.2rem;letter-spacing:.55em;color:var(--gold);overflow:hidden}
+.ld-word span{display:inline-block;opacity:0;transform:translateY(30px);animation:ldIn .6s forwards}
+.ld-word span:nth-child(1){animation-delay:.1s} .ld-word span:nth-child(2){animation-delay:.2s}
+.ld-word span:nth-child(3){animation-delay:.3s} .ld-word span:nth-child(4){animation-delay:.4s}
+.ld-word span:nth-child(5){animation-delay:.5s}
+.ld-bar{width:100px;height:1px;background:rgba(201,168,76,.2);position:relative;overflow:hidden}
+.ld-bar::after{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);animation:ldBar 1.4s .6s ease forwards}
+@keyframes ldIn{to{opacity:1;transform:none}}
+@keyframes ldBar{to{transform:translateX(100%)}}
+
+/* ═══════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 3.5rem;
+  background:var(--nav);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  transition:background .4s;
+}
+.nav-brand{
+  font-family:'Cinzel',serif;font-size:1.45rem;letter-spacing:.4em;color:var(--gold);
+  text-decoration:none;display:flex;flex-direction:column;
+}
+.nav-brand small{font-size:.52rem;letter-spacing:.45em;color:var(--muted);font-family:'Jost',sans-serif;font-weight:300;margin-top:-1px}
+.nav-links{display:flex;gap:2.2rem}
+.nav-links a{
+  text-decoration:none;color:var(--muted);
+  font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+  transition:color .3s;position:relative;
+}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:width .3s}
+.nav-links a:hover{color:var(--gold)} .nav-links a:hover::after{width:100%}
+.nav-right{display:flex;align-items:center;gap:1.4rem}
+.nav-btn{
+  padding:.5rem 1.5rem;border:1px solid var(--gold);background:transparent;
+  color:var(--gold);font-family:'Jost',sans-serif;font-size:.66rem;
+  letter-spacing:.22em;text-transform:uppercase;cursor:pointer;
+  transition:background .3s,color .3s;
+}
+.nav-btn:hover{background:var(--gold);color:var(--bg)}
+/* Theme toggle */
+.tog-wrap{display:flex;align-items:center;gap:.6rem}
+.tog-lbl{font-size:.6rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;min-width:28px}
+.tog{width:42px;height:22px;background:rgba(201,168,76,.1);border:1px solid var(--border);border-radius:11px;position:relative;cursor:pointer;transition:background .3s}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:var(--gold);border-radius:50%;transition:transform .35s}
+[data-theme="light"] .tog::after{transform:translateX(20px)}
+
+/* ═══════════════════════════════════════
+   HERO
+═══════════════════════════════════════ */
+#hero{
+  position:relative;height:100vh;min-height:700px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.hero-img{
+  position:absolute;inset:0;
+  background:url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800&q=80') center/cover no-repeat;
+  transform:scale(1.06);
+  animation:heroZoom 18s ease-in-out infinite alternate;
+}
+[data-theme="light"] .hero-img{filter:brightness(.85)}
+@keyframes heroZoom{from{transform:scale(1.06)}to{transform:scale(1.0)}}
+.hero-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to right, rgba(11,9,6,.82) 40%, rgba(11,9,6,.3) 100%);
+}
+[data-theme="light"] .hero-overlay{background:linear-gradient(to right,rgba(11,9,6,.72) 40%,rgba(11,9,6,.2) 100%)}
+.hero-content{
+  position:relative;z-index:10;
+  max-width:700px;padding:0 3.5rem;
+}
+.h-tag{
+  display:inline-flex;align-items:center;gap:.8rem;
+  font-size:.62rem;letter-spacing:.45em;text-transform:uppercase;color:var(--gold);
+  margin-bottom:1.4rem;opacity:0;animation:up .8s .3s forwards;
+}
+.h-tag::before{content:'';width:28px;height:1px;background:var(--gold)}
+.h-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(3rem,6.5vw,6.2rem);font-weight:400;line-height:1.06;
+  color:#F2E8D0;margin-bottom:1.2rem;
+  opacity:0;animation:up .9s .5s forwards;
+}
+.h-title em{font-style:italic;color:var(--gold)}
+.h-rule{width:0;height:1px;background:var(--gold);margin:1.6rem 0;animation:widen 1s .9s forwards}
+.h-sub{font-size:.88rem;line-height:1.9;color:rgba(242,232,208,.7);font-weight:300;max-width:420px;opacity:0;animation:up .8s .7s forwards}
+.h-cta{margin-top:2.4rem;display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:up .8s .95s forwards}
+.btn-gold{padding:.82rem 2.4rem;background:var(--gold);color:#0B0906;border:none;font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;font-weight:500;transition:all .3s}
+.btn-gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 10px 30px rgba(201,168,76,.4)}
+.btn-outline{padding:.82rem 2.4rem;background:transparent;color:#F2E8D0;border:1px solid rgba(242,232,208,.35);font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;transition:all .3s}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+/* scroll hint */
+.scroll-hint{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:.6}
+.scroll-hint span{font-size:.58rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold)}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ═══════════════════════════════════════
+   SECTION COMMONS
+═══════════════════════════════════════ */
+section{padding:8rem 3.5rem}
+.sec-head{text-align:center;margin-bottom:4.5rem}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.9rem;
+  font-size:.62rem;letter-spacing:.45em;text-transform:uppercase;color:var(--gold);margin-bottom:.9rem;
+}
+.eyebrow::before,.eyebrow::after{content:'';width:28px;height:1px;background:var(--gold)}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,4vw,3.6rem);font-weight:400;line-height:1.1;color:var(--txt)}
+.sec-title em{font-style:italic;color:var(--gold)}
+.sec-sub{margin-top:.8rem;font-size:.85rem;color:var(--muted);max-width:480px;margin-inline:auto;line-height:1.8;font-weight:300}
+
+/* reveal animation */
+.rv{opacity:0;transform:translateY(36px);transition:opacity .85s,transform .85s}
+.rv.on{opacity:1;transform:none}
+.rv.d1{transition-delay:.1s} .rv.d2{transition-delay:.2s} .rv.d3{transition-delay:.3s} .rv.d4{transition-delay:.4s}
+
+@keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes widen{to{width:72px}}
+
+/* ═══════════════════════════════════════
+   MENU
+═══════════════════════════════════════ */
+#menu{background:var(--bg2)}
+.menu-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:3px;
+  max-width:1200px;margin:0 auto;
+}
+.dish{
+  position:relative;overflow:hidden;aspect-ratio:4/5;cursor:pointer;
+}
+.dish img{
+  width:100%;height:100%;object-fit:cover;
+  transform:scale(1.06);transition:transform .7s ease;
+  display:block;
+}
+.dish:hover img{transform:scale(1.13)}
+.dish-grad{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(11,9,6,.95) 0%,rgba(11,9,6,.1) 55%,transparent 100%);
+  transition:opacity .4s;
+}
+.dish-base{
+  position:absolute;bottom:0;left:0;right:0;padding:1.6rem;
+  transition:opacity .35s,transform .35s;
+}
+.dish-base h3{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:400;color:#F2E8D0;margin-bottom:.25rem}
+.dish-base .price{color:var(--gold);font-size:.78rem;letter-spacing:.1em}
+.dish-hover{
+  position:absolute;inset:0;background:rgba(11,9,6,.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem;text-align:center;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .38s,transform .38s;
+  pointer-events:none;
+}
+.dish:hover .dish-hover{opacity:1;transform:none;pointer-events:auto}
+.dish:hover .dish-base{opacity:0;transform:translateY(8px)}
+.dish-hover h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);margin-bottom:.7rem}
+.dish-hover .ingr{font-size:.78rem;color:#c4b49a;line-height:1.75;margin-bottom:.9rem}
+.dish-hover .note{font-family:'Playfair Display',serif;font-style:italic;font-size:.8rem;color:var(--muted)}
+.dish-hover .note::before{content:'❝ '} .dish-hover .note::after{content:' ❞'}
+.menu-cta{text-align:center;margin-top:2.5rem}
+
+/* ═══════════════════════════════════════
+   RESERVATION
+═══════════════════════════════════════ */
+#reservation{background:var(--bg)}
+.res-wrap{
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1.05fr;gap:0;
+  border:1px solid var(--border);overflow:hidden;
+}
+.res-img{
+  position:relative;overflow:hidden;min-height:540px;
+}
+.res-img img{width:100%;height:100%;object-fit:cover;display:block}
+.res-img::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to right,rgba(11,9,6,0) 60%,var(--bg) 100%);
+}
+[data-theme="light"] .res-img::after{background:linear-gradient(to right,rgba(11,9,6,0) 60%,var(--bg) 100%)}
+.res-form{
+  background:var(--surface);padding:3.5rem;
+  position:relative;overflow:hidden;
+}
+.res-form::before{
+  content:'';position:absolute;top:-1px;left:15%;right:15%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.fg{display:flex;flex-direction:column;gap:.45rem;margin-bottom:1rem}
+.fg label{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
+.fg input,.fg select,.fg textarea{
+  background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--txt);padding:.65rem 0;font-family:'Jost',sans-serif;font-size:.88rem;
+  outline:none;transition:border-color .3s;appearance:none;width:100%;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-bottom-color:var(--gold)}
+.fg input::placeholder{color:var(--muted);font-size:.8rem}
+.fg select option{background:#181208;color:#F2E8D0}
+.res-form .btn-gold{width:100%;padding:1rem;margin-top:1.5rem;font-size:.72rem}
+.res-confirm{display:none;margin-top:1rem;text-align:center;color:var(--gold);font-family:'Playfair Display',serif;font-style:italic;font-size:1rem}
+
+/* ═══════════════════════════════════════
+   SOMMELIER
+═══════════════════════════════════════ */
+#sommelier{
+  background:var(--bg2);
+  position:relative;overflow:hidden;
+}
+#sommelier::before{
+  content:'';position:absolute;inset:0;
+  background:url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=60') center/cover no-repeat;
+  opacity:.08;
+}
+[data-theme="light"] #sommelier::before{opacity:.05}
+.som-inner{
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;
+  position:relative;z-index:1;
+}
+.som-text h2{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:400;margin:1rem 0 1.2rem;color:var(--txt)}
+.som-text h2 em{color:var(--gold);font-style:italic}
+.som-text p{font-size:.85rem;color:var(--muted);line-height:1.9;margin-bottom:2rem;font-weight:300}
+.som-feature{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.2rem}
+.som-feature .ico{width:36px;height:36px;background:var(--gold3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.som-feature h4{font-size:.78rem;letter-spacing:.1em;color:var(--txt);margin-bottom:.2rem}
+.som-feature p{font-size:.75rem;color:var(--muted);line-height:1.6}
+/* Chat */
+.chat-box{background:var(--surface);border:1px solid var(--border);overflow:hidden}
+.chat-top{
+  background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));
+  padding:1.1rem 1.5rem;display:flex;align-items:center;gap:.9rem;
+  border-bottom:1px solid var(--border);
+}
+.c-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8a6020);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.c-name{font-family:'Playfair Display',serif;font-size:1rem;color:var(--txt)}
+.c-sub{font-size:.6rem;color:var(--muted);letter-spacing:.1em}
+.c-dot{width:7px;height:7px;background:#4CAF50;border-radius:50%;margin-left:auto;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.c-msgs{height:260px;overflow-y:auto;padding:1.3rem;display:flex;flex-direction:column;gap:.9rem;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.cm{max-width:85%}
+.cm.bot{align-self:flex-start} .cm.usr{align-self:flex-end}
+.cm-who{font-size:.58rem;letter-spacing:.15em;color:var(--muted);margin-bottom:.25rem;text-transform:uppercase}
+.cm-bub{padding:.75rem 1rem;font-size:.8rem;line-height:1.65;border-radius:1px}
+.cm.bot .cm-bub{background:rgba(201,168,76,.07);border:1px solid var(--border);color:var(--txt)}
+.cm.usr .cm-bub{background:rgba(201,168,76,.16);border:1px solid rgba(201,168,76,.28);color:var(--txt)}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.chip{
+  padding:.22rem .65rem;background:rgba(201,168,76,.08);
+  border:1px solid rgba(201,168,76,.22);font-size:.68rem;color:var(--gold);
+  cursor:pointer;transition:background .2s;border-radius:1px;
+}
+.chip:hover{background:rgba(201,168,76,.2)}
+.c-in{display:flex;gap:.7rem;padding:.9rem 1.2rem;border-top:1px solid var(--border)}
+.c-input{
+  flex:1;background:transparent;border:1px solid var(--border);
+  color:var(--txt);padding:.6rem .9rem;font-family:'Jost',sans-serif;font-size:.8rem;
+  outline:none;transition:border-color .3s;
+}
+.c-input:focus{border-color:var(--gold)}
+.c-send{width:38px;height:38px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0B0906;font-size:.9rem;flex-shrink:0;transition:background .3s}
+.c-send:hover{background:var(--gold2)}
+
+/* ═══════════════════════════════════════
+   EVENTS
+═══════════════════════════════════════ */
+#events{background:var(--bg)}
+.ev-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;
+  max-width:1200px;margin:0 auto;
+}
+.ev-card{
+  background:var(--surface);border:1px solid var(--border);
+  overflow:hidden;transition:transform .4s,box-shadow .4s;
+}
+.ev-card:hover{transform:translateY(-7px);box-shadow:var(--glow)}
+.ev-img{height:220px;overflow:hidden;position:relative}
+.ev-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.ev-card:hover .ev-img img{transform:scale(1.08)}
+.ev-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,var(--surface) 0%,transparent 55%)}
+.ev-body{padding:1.7rem}
+.ev-tag{font-size:.58rem;letter-spacing:.35em;color:var(--gold);text-transform:uppercase;margin-bottom:.5rem}
+.ev-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:400;margin-bottom:.55rem;color:var(--txt)}
+.ev-desc{font-size:.78rem;color:var(--muted);line-height:1.75;margin-bottom:1.1rem}
+.ev-meta{display:flex;flex-direction:column;gap:.28rem;margin-bottom:1.2rem}
+.ev-meta span{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.ev-card .btn-gold{font-size:.64rem;padding:.6rem 1.4rem}
+
+/* ═══════════════════════════════════════
+   LOYALTY
+═══════════════════════════════════════ */
+#loyalty{background:var(--bg2);overflow:hidden;position:relative}
+#loyalty::after{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+.loy-inner{
+  max-width:1150px;margin:0 auto;
+  display:grid;grid-template-columns:1.1fr 1fr;gap:5rem;align-items:center;
+  position:relative;z-index:1;
+}
+/* card stack */
+.card-stage{display:flex;align-items:center;justify-content:center;height:340px;perspective:1200px}
+.m-card{
+  width:380px;height:230px;
+  border-radius:16px;padding:2.2rem;
+  position:relative;overflow:hidden;
+  transform-style:preserve-3d;
+  animation:cardTilt 7s ease-in-out infinite;
+  box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 50px rgba(201,168,76,.14);
+  cursor:pointer;
+}
+.m-card.gold-card{background:linear-gradient(135deg,#1C1508 0%,#2E2005 45%,#1C1508 100%);border:1px solid rgba(201,168,76,.6)}
+.m-card.silver-card{
+  background:linear-gradient(135deg,#141212 0%,#222020 45%,#141212 100%);
+  border:1px solid rgba(180,180,180,.3);
+  position:absolute;width:360px;height:218px;
+  transform:rotateY(-8deg) rotateX(5deg) translateX(-20px) translateY(16px);
+  z-index:-1;animation:none;
+}
+.card-shine{
+  position:absolute;inset:0;border-radius:16px;
+  background:linear-gradient(135deg,transparent 25%,rgba(255,255,255,.06) 50%,transparent 75%);
+  background-size:200% 200%;
+  animation:shine 4s ease-in-out infinite;
+}
+@keyframes shine{0%,100%{background-position:0% 0%}50%{background-position:100% 100%}}
+@keyframes cardTilt{
+  0%,100%{transform:rotateX(8deg) rotateY(-14deg) translateY(0)}
+  33%{transform:rotateX(10deg) rotateY(-8deg) translateY(-10px)}
+  66%{transform:rotateX(6deg) rotateY(-18deg) translateY(-5px)}
+}
+.card-logo{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.35em}
+.card-tier{font-size:.55rem;letter-spacing:.4em;color:rgba(201,168,76,.55);text-transform:uppercase;margin-top:.15rem}
+.card-chip{
+  position:absolute;right:2rem;top:2rem;
+  width:34px;height:26px;border-radius:5px;
+  background:linear-gradient(135deg,var(--gold) 0%,#8a6020 100%);
+  opacity:.85;
+}
+.card-num{
+  position:absolute;bottom:3.8rem;left:2.2rem;
+  font-size:.82rem;letter-spacing:.22em;color:rgba(201,168,76,.55);
+}
+.card-holder{position:absolute;bottom:1.8rem;left:2.2rem;font-family:'Playfair Display',serif;font-size:.95rem;color:#F2E8D0}
+.card-star{position:absolute;top:1.6rem;left:50%;transform:translateX(-50%);color:rgba(201,168,76,.3);font-size:1rem;letter-spacing:.6rem}
+/* loyalty text */
+.loy-txt .eyebrow{justify-content:flex-start}
+.loy-txt .eyebrow::before{display:none}
+.loy-txt h2{font-family:'Playfair Display',serif;font-size:2.7rem;font-weight:400;margin:1rem 0 1rem;line-height:1.15;color:var(--txt)}
+.loy-txt h2 em{color:var(--gold);font-style:italic}
+.loy-txt>p{font-size:.84rem;color:var(--muted);line-height:1.9;margin-bottom:1.8rem;font-weight:300}
+.perks{display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem}
+.perk{display:flex;align-items:center;gap:.85rem;font-size:.82rem;color:var(--txt)}
+.perk::before{content:'✦';color:var(--gold);font-size:.8rem;flex-shrink:0}
+.tiers{display:flex;gap:.7rem;margin-bottom:2rem;flex-wrap:wrap}
+.tier-badge{
+  padding:.35rem 1rem;border:1px solid var(--border);
+  font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
+  transition:all .3s;cursor:pointer;
+}
+.tier-badge.active,.tier-badge:hover{background:var(--gold);color:#0B0906;border-color:var(--gold)}
+
+/* ═══════════════════════════════════════
+   GALLERY STRIP
+═══════════════════════════════════════ */
+.gallery-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
+  max-width:100%;overflow:hidden;
+}
+.gs-item{overflow:hidden;aspect-ratio:3/4;position:relative}
+.gs-item img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.gs-item:hover img{transform:scale(1.1)}
+.gs-item::after{content:'';position:absolute;inset:0;background:rgba(11,9,6,.35);transition:opacity .4s}
+.gs-item:hover::after{opacity:0}
+
+/* ═══════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════ */
+footer{
+  background:var(--bg3);border-top:1px solid var(--border);
+  padding:5rem 3.5rem 3rem;
+}
+.footer-top{
+  display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;
+  gap:3rem;max-width:1200px;margin:0 auto 3.5rem;
+}
+.f-brand{font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:.38em;color:var(--gold);margin-bottom:.5rem}
+.f-tagline{font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.9rem;margin-bottom:1.2rem}
+.f-desc{font-size:.78rem;color:var(--muted);line-height:1.8;font-weight:300}
+.f-col h4{font-size:.62rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
+.f-col ul{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+.f-col ul li a{text-decoration:none;color:var(--muted);font-size:.78rem;transition:color .3s}
+.f-col ul li a:hover{color:var(--gold)}
+.f-contact p{font-size:.78rem;color:var(--muted);line-height:2;font-weight:300}
+.footer-bottom{
+  border-top:1px solid var(--border);padding-top:2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  max-width:1200px;margin:0 auto;flex-wrap:wrap;gap:1rem;
+}
+.footer-bottom p{font-size:.68rem;color:var(--muted);opacity:.6}
+.f-socials{display:flex;gap:1rem}
+.f-social{
+  width:32px;height:32px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:.8rem;text-decoration:none;
+  transition:border-color .3s,color .3s;
+}
+.f-social:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:1000px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  section{padding:5rem 1.5rem}
+  .menu-grid{grid-template-columns:1fr 1fr}
+  .res-wrap{grid-template-columns:1fr}
+  .res-img{min-height:280px}
+  .som-inner{grid-template-columns:1fr}
+  .ev-grid{grid-template-columns:1fr}
+  .loy-inner{grid-template-columns:1fr}
+  .card-stage{height:250px}
+  .m-card{width:300px;height:182px}
+  .m-card.silver-card{display:none}
+  .gallery-strip{grid-template-columns:repeat(3,1fr)}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .menu-grid{grid-template-columns:1fr}
+  .f-row{grid-template-columns:1fr}
+  .gallery-strip{grid-template-columns:repeat(2,1fr)}
+  .footer-top{grid-template-columns:1fr}
+  .h-title{font-size:2.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-word">
+    <span>A</span><span>U</span><span>R</span><span>U</span><span>M</span>
+  </div>
+  <div class="ld-bar"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">AURUM <small>Fine Dining · Est. 1998</small></a>
+  <div class="nav-links">
+    <a href="#menu">Menu</a>
+    <a href="#reservation">Reserve</a>
+    <a href="#sommelier">Sommelier</a>
+    <a href="#events">Events</a>
+    <a href="#loyalty">Membership</a>
+  </div>
+  <div class="nav-right">
+    <div class="tog-wrap">
+      <span class="tog-lbl" id="tl">Dark</span>
+      <div class="tog" id="tog"></div>
+    </div>
+    <button class="nav-btn" onclick="scrollTo('reservation')">Reserve</button>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-img"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="h-tag">Michelin ✦ Paris · New York · Tokyo</div>
+    <h1 class="h-title">Experience<br><em>Culinary Artistry</em></h1>
+    <div class="h-rule"></div>
+    <p class="h-sub">Each plate is a canvas. Each evening, an unrepeatable story written in flavour, fire, and finesse.</p>
+    <div class="h-cta">
+      <button class="btn-gold" onclick="scrollTo('reservation')">Reserve Your Table</button>
+      <button class="btn-outline" onclick="scrollTo('menu')">Explore the Menu</button>
+    </div>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<!-- ══ MENU ══ -->
+<section id="menu">
+  <div class="sec-head rv">
+    <div class="eyebrow">The Menu</div>
+    <h2 class="sec-title">The Art of <em>Flavour</em></h2>
+    <p class="sec-sub">Hover each dish to reveal ingredients and the chef's personal note.</p>
+  </div>
+  <div class="menu-grid rv">
+    <!-- dish 1 -->
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=80" alt="Lobster Bisque" loading="lazy"/>
+      <div class="dish-grad"></div>
+      <div class="dish-base"><h3>Poached Lobster Bisque</h3><div class="price">$68</div></div>
+      <div class="dish-hover">
+        <h3>Poached Lobster Bisque</h3>
+        <p class="ingr">Maine lobster · saffron broth · fennel oil · crème fraîche · Oscietra caviar</p>
+        <p class="note">The sea, distilled into a single spoon.</p>
+      </div>
+    </div>
+    <!-- dish 2 -->
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&q=80" alt="Wagyu" loading="lazy"/>
+      <div class="dish-grad"></div>
+      <div class="dish-base"><h3>Wagyu Tenderloin A5</h3><div class="price">$185</div></div>
+      <div class="dish-hover">
+        <h3>Wagyu Tenderloin A5</h3>
+        <p class="ingr">Japanese A5 Wagyu · Périgord truffle jus · haricots verts · pommes soufflées</p>
+        <p class="note">Perfection aged 120 days, rested at 58°C.</p>
+      </div>
+    </div>
+    <!-- dish 3 -->
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=600&q=80" alt="Risotto" loading="lazy"/>
+      <div class="dish-grad"></div>
+      <div class="dish-base"><h3>Wild Mushroom Risotto</h3><div class="price">$52</div></div>
+      <div class="dish-hover">
+        <h3>Wild Mushroom Risotto</h3>
+        <p class="ingr">Carnaroli rice · porcini · chanterelle · aged Parmesan · truffle foam</p>
+        <p class="note">Slow patience yields extraordinary depth.</p>
+      </div>
+    </div>
+    <!-- dish 4 -->
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&q=80" alt="Turbot" loading="lazy"/>
+      <div class="dish-grad"></div>
+      <div class="dish-base"><h3>Pan-Seared Turbot</h3><div class="price">$95</div></div>
+      <div class="dish-hover">
+        <h3>Pan-Seared Turbot</h3>
+        <p class="ingr">Line-caught turbot · champagne beurre blanc · baby leeks · salsify · sea herbs</p>
+        <p class="note">Ocean to plate in under 48 hours.</p>
+      </div>
+    </div>
+    <!-- dish 5 -->
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&q=80" alt="Crème Brûlée" loading="lazy"/>
+      <div class="dish-grad"></div>
+      <div class="dish-base"><h3>Crème Brûlée Grand Cru</h3><div class="price">$28</div></div>
+      <div class="dish-hover">
+        <h3>Crème Brûlée Grand Cru</h3>
+        <p class="ingr">Tahitian vanilla · Demerara crust · seasonal berry compote · tuile dentelle</p>
+        <p class="note">The crack of the spoon — our signature ending.</p>
+      </div>
+    </div>
+    <!-- dish 6 -->
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1511689660979-10d2b1eccfbc?w=600&q=80" alt="Chocolate Sphere" loading="lazy"/>
+      <div class="dish-grad"></div>
+      <div class="dish-base"><h3>Valrhona Chocolate Sphere</h3><div class="price">$32</div></div>
+      <div class="dish-hover">
+        <h3>Valrhona Chocolate Sphere</h3>
+        <p class="ingr">72% Valrhona · passion fruit curd · hazelnut praline · edible gold leaf</p>
+        <p class="note">Theater on a plate. Melts at the table.</p>
+      </div>
+    </div>
+  </div>
+  <div class="menu-cta rv"><button class="btn-outline" style="margin-top:.5rem">View Full Menu</button></div>
+</section>
+
+<!-- ══ GALLERY STRIP ══ -->
+<div class="gallery-strip">
+  <div class="gs-item"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75" alt="dining" loading="lazy"/></div>
+  <div class="gs-item"><img src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400&q=75" alt="chef" loading="lazy"/></div>
+  <div class="gs-item"><img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=75" alt="wine" loading="lazy"/></div>
+  <div class="gs-item"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75" alt="plating" loading="lazy"/></div>
+  <div class="gs-item"><img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=75" alt="interior" loading="lazy"/></div>
+</div>
+
+<!-- ══ RESERVATION ══ -->
+<section id="reservation">
+  <div class="sec-head rv">
+    <div class="eyebrow">Book a Table</div>
+    <h2 class="sec-title">Make a <em>Reservation</em></h2>
+  </div>
+  <div class="res-wrap rv">
+    <div class="res-img">
+      <img src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=900&q=80" alt="Restaurant interior" loading="lazy"/>
+    </div>
+    <div class="res-form">
+      <div class="f-row">
+        <div class="fg"><label>First Name</label><input type="text" placeholder="Alexandre"></div>
+        <div class="fg"><label>Last Name</label><input type="text" placeholder="Moreau"></div>
+      </div>
+      <div class="f-row">
+        <div class="fg"><label>Date</label><input type="date"></div>
+        <div class="fg"><label>Time</label>
+          <select>
+            <option>18:00 — 6:00 PM</option><option>18:30 — 6:30 PM</option>
+            <option>19:00 — 7:00 PM</option><option>19:30 — 7:30 PM</option>
+            <option>20:00 — 8:00 PM</option><option>21:00 — 9:00 PM</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-row">
+        <div class="fg"><label>Guests</label>
+          <select>
+            <option>2 guests</option><option>3 guests</option><option>4 guests</option>
+            <option>5–6 guests</option><option>7+ (Private Dining)</option>
+          </select>
+        </div>
+        <div class="fg"><label>Occasion</label>
+          <select>
+            <option>Dinner</option><option>Anniversary</option><option>Birthday</option>
+            <option>Business</option><option>Proposal</option><option>Chef's Table</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Email</label><input type="email" placeholder="your@email.com"></div>
+      <div class="fg"><label>Special Requests</label><input type="text" placeholder="Dietary needs, allergies, arrangements…"></div>
+      <button class="btn-gold" onclick="confirmRes()">Confirm Reservation</button>
+      <div class="res-confirm" id="rc">✦ Your table awaits. Confirmation sent to your inbox. ✦</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SOMMELIER ══ -->
+<section id="sommelier">
+  <div class="som-inner">
+    <div class="som-text rv">
+      <div class="eyebrow" style="justify-content:flex-start"><span style="display:contents">AI Wine Pairing</span></div>
+      <h2>Your Personal <em>Sommelier</em></h2>
+      <p>Sommelier Léon draws on 20,000 bottles and decades of pairing knowledge to recommend the perfect wine for every dish and palate. Simply describe what you're having.</p>
+      <div class="som-feature">
+        <div class="ico">🍷</div>
+        <div><h4>Curated Cellar</h4><p>Burgundy, Bordeaux, Barolo and beyond — spanning over 60 regions worldwide.</p></div>
+      </div>
+      <div class="som-feature">
+        <div class="ico">✦</div>
+        <div><h4>Dish-Perfect Pairings</h4><p>Every recommendation is calibrated to the exact dish, preparation, and seasonality.</p></div>
+      </div>
+      <div class="som-feature">
+        <div class="ico">📖</div>
+        <div><h4>Vintage Stories</h4><p>Ask Léon about the estate, the harvest year, and what makes each bottle extraordinary.</p></div>
+      </div>
+    </div>
+    <div class="chat-box rv d2">
+      <div class="chat-top">
+        <div class="c-av">🍷</div>
+        <div><div class="c-name">Sommelier Léon</div><div class="c-sub">20,000 curated bottles · AI Assisted</div></div>
+        <div class="c-dot"></div>
+      </div>
+      <div class="c-msgs" id="cm">
+        <div class="cm bot">
+          <div class="cm-who">Sommelier Léon</div>
+          <div class="cm-bub">Bonsoir. I am Léon, your sommelier this evening. Tell me your dish — or select one below — and I shall find the perfect companion from our cellar.</div>
+          <div class="chips">
+            <span class="chip" onclick="askWine('Wagyu Tenderloin')">Wagyu</span>
+            <span class="chip" onclick="askWine('Lobster Bisque')">Lobster</span>
+            <span class="chip" onclick="askWine('Mushroom Risotto')">Risotto</span>
+            <span class="chip" onclick="askWine('Pan-seared Turbot')">Turbot</span>
+            <span class="chip" onclick="askWine('Chocolate Sphere')">Dessert</span>
+          </div>
+        </div>
+      </div>
+      <div class="c-in">
+        <input class="c-input" id="ci" placeholder="Describe your dish or ask anything…" onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="c-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ EVENTS ══ -->
+<section id="events">
+  <div class="sec-head rv">
+    <div class="eyebrow">Private Experiences</div>
+    <h2 class="sec-title">Evenings <em>Curated</em> for You</h2>
+    <p class="sec-sub">From intimate chef's table dinners to full venue buyouts, every detail is considered.</p>
+  </div>
+  <div class="ev-grid">
+    <div class="ev-card rv d1">
+      <div class="ev-img">
+        <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=700&q=80" alt="Chef's Table" loading="lazy"/>
+      </div>
+      <div class="ev-body">
+        <div class="ev-tag">Exclusive</div>
+        <div class="ev-title">Chef's Table</div>
+        <p class="ev-desc">An intimate 8-course journey at the heart of our kitchen. Chef Laurent plates each course in front of you, sharing the story behind every ingredient.</p>
+        <div class="ev-meta">
+          <span>👥 Up to 8 guests</span>
+          <span>🕖 Friday & Saturday evenings</span>
+          <span>💰 From $380 per person</span>
+        </div>
+        <button class="btn-gold">Enquire Now</button>
+      </div>
+    </div>
+    <div class="ev-card rv d2">
+      <div class="ev-img">
+        <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=700&q=80" alt="Wine Tasting" loading="lazy"/>
+      </div>
+      <div class="ev-body">
+        <div class="ev-tag">Curated</div>
+        <div class="ev-title">Wine Tasting Evening</div>
+        <p class="ev-desc">Journey through our Grand Cru cellar with Sommelier Léon. Six exceptional vintages, paired canapés, and the stories behind each harvest.</p>
+        <div class="ev-meta">
+          <span>👥 12–24 guests</span>
+          <span>🗓️ Last Thursday monthly</span>
+          <span>💰 $175 per person</span>
+        </div>
+        <button class="btn-gold">Enquire Now</button>
+      </div>
+    </div>
+    <div class="ev-card rv d3">
+      <div class="ev-img">
+        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=700&q=80" alt="Private Dining" loading="lazy"/>
+      </div>
+      <div class="ev-body">
+        <div class="ev-tag">Private</div>
+        <div class="ev-title">Exclusive Venue Hire</div>
+        <p class="ev-desc">The entire restaurant, yours alone. Bespoke menus, floristry, entertainment and a dedicated front-of-house team for your most important occasions.</p>
+        <div class="ev-meta">
+          <span>👥 Up to 60 guests</span>
+          <span>🗓️ Available on request</span>
+          <span>💰 Bespoke pricing</span>
+        </div>
+        <button class="btn-gold">Enquire Now</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ LOYALTY ══ -->
+<section id="loyalty">
+  <div class="loy-inner">
+    <div class="loy-txt rv">
+      <div class="eyebrow">Membership</div>
+      <h2>The <em>Golden Circle</em></h2>
+      <p>Our most valued guests deserve more than a meal — they deserve a legacy. Aurum membership rewards your loyalty with privileges that begin from your very first visit.</p>
+      <div class="tiers">
+        <div class="tier-badge active">Gold</div>
+        <div class="tier-badge">Platinum</div>
+        <div class="tier-badge">Diamond</div>
+      </div>
+      <div class="perks">
+        <div class="perk">Complimentary champagne on every arrival</div>
+        <div class="perk">Priority Chef's Table and event reservations</div>
+        <div class="perk">Personalised menus crafted to your preferences</div>
+        <div class="perk">20% discount across our entire wine cellar</div>
+        <div class="perk">Complimentary birthday and anniversary dining</div>
+        <div class="perk">Dedicated concierge and private reservation line</div>
+      </div>
+      <button class="btn-gold">Apply for Membership</button>
+    </div>
+    <div class="card-stage rv d2">
+      <div class="m-card silver-card">
+        <div class="card-shine"></div>
+        <div class="card-logo" style="color:rgba(200,200,200,.7)">AURUM<div class="card-tier" style="color:rgba(180,180,180,.4)">Platinum Member</div></div>
+      </div>
+      <div class="m-card gold-card">
+        <div class="card-shine"></div>
+        <div class="card-star">✦ ✦ ✦</div>
+        <div class="card-logo">AURUM<div class="card-tier">Gold Member</div></div>
+        <div class="card-chip"></div>
+        <div class="card-num">**** **** **** 7842</div>
+        <div class="card-holder">Alexandre Moreau</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="f-brand">AURUM</div>
+      <div class="f-tagline">Where every evening becomes a memory</div>
+      <p class="f-desc">Three Michelin stars. One unwavering commitment to excellence. Aurum has defined fine dining in Paris since 1998.</p>
+    </div>
+    <div class="f-col">
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="#">The Menu</a></li>
+        <li><a href="#">Reservations</a></li>
+        <li><a href="#">Private Events</a></li>
+        <li><a href="#">Membership</a></li>
+        <li><a href="#">Gift Cards</a></li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h4>About</h4>
+      <ul>
+        <li><a href="#">Chef Laurent</a></li>
+        <li><a href="#">Our Story</a></li>
+        <li><a href="#">Press & Awards</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Sustainability</a></li>
+      </ul>
+    </div>
+    <div class="f-col f-contact">
+      <h4>Visit Us</h4>
+      <p>14 Rue de la Paix<br>Paris, 75002<br><br>+33 1 42 60 00 00<br>hello@aurumrestaurant.com<br><br>Mon–Sat: 18:00 – 23:00<br>Sunday: Closed</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Aurum Fine Dining. All rights reserved.</p>
+    <div class="f-socials">
+      <a class="f-social" href="#" title="Instagram">✦</a>
+      <a class="f-social" href="#" title="Facebook">f</a>
+      <a class="f-social" href="#" title="Twitter">𝕏</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── Loader ── */
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('out'), 1900);
+});
+
+/* ── Theme toggle ── */
+const tog = document.getElementById('tog');
+const tl  = document.getElementById('tl');
+tog.addEventListener('click', () => {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+  tl.textContent = dark ? 'Light' : 'Dark';
+});
+
+/* ── Scroll helper ── */
+function scrollTo(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}) }
+
+/* ── Reveal on scroll ── */
+const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('on') }), {threshold:.12});
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
+
+/* ── Tier badges ── */
+document.querySelectorAll('.tier-badge').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tier-badge').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+
+/* ── Reservation confirm ── */
+function confirmRes(){
+  const rc = document.getElementById('rc');
+  rc.style.display = 'block';
+  rc.style.animation = 'none';
+  rc.offsetHeight;
+  rc.style.animation = 'up .5s forwards';
+  setTimeout(() => rc.style.display = 'none', 5000);
+}
+
+/* ── Sommelier chat ── */
+const wineDB = {
+  wagyu:   { txt: "Magnifique choice. For the Wagyu A5, I recommend our 2016 Château Pétrus — its silky tannins and dark plum echo the marbling beautifully. Alternatively the 2018 Barolo by Giacomo Conterno offers dried roses and truffle that elevate every bite.", wines:["2016 Pétrus, Pomerol","2018 Barolo Conterno","2015 Cos d'Estournel"] },
+  lobster: { txt: "For the Lobster Bisque, consider our 2019 Corton-Charlemagne by Louis Latour — mineral precision and buttered oak harmonise with the saffron broth perfectly. A 2020 Chablis Grand Cru would also be exquisite.", wines:["2019 Corton-Charlemagne","2020 Chablis Grand Cru","2021 Meursault Premier Cru"] },
+  risotto: { txt: "The wild mushroom calls for Burgundy. A 2017 Gevrey-Chambertin from Rossignol-Trapet echoes the porcini's earthiness with extraordinary depth. For white, try our 2018 Puligny-Montrachet from Leflaive.", wines:["2017 Gevrey-Chambertin","2018 Puligny-Montrachet","2019 Chambolle-Musigny"] },
+  turbot:  { txt: "The turbot's delicacy deserves equal refinement. I suggest our 2020 Le Montrachet from DRC — an exceptional match with the champagne beurre blanc. A 2019 Sancerre from Henri Bourgeois is a lighter alternative.", wines:["2020 Montrachet DRC","2019 Sancerre Bourgeois","2021 Pouilly-Fumé"] },
+  chocolate:{ txt: "For the Valrhona Chocolate Sphere, I suggest our 2015 Château Rieussec Sauternes — honeyed apricot and vanilla thread through the dark chocolate beautifully. A vintage Tawny Port from Quinta do Crasto is equally sublime.", wines:["2015 Rieussec Sauternes","Quinta do Crasto Tawny 20yr","2018 Banyuls Grand Cru"] },
+};
+
+function addMsg(txt, role, chips=[]) {
+  const wrap = document.getElementById('cm');
+  const d = document.createElement('div');
+  d.className = 'cm ' + role;
+  let h = role === 'bot' ? '<div class="cm-who">Sommelier Léon</div>' : '';
+  h += `<div class="cm-bub">${txt}</div>`;
+  if(chips.length) h += `<div class="chips">${chips.map(c=>`<span class="chip" onclick="askWine('${c}')">${c}</span>`).join('')}</div>`;
+  d.innerHTML = h;
+  wrap.appendChild(d);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function askWine(dish) {
+  addMsg(dish, 'usr');
+  const key = Object.keys(wineDB).find(k => dish.toLowerCase().includes(k));
+  const r = wineDB[key] || { txt:"An intriguing selection. I would explore the Loire Valley for mineral whites, or Rhône for full-bodied reds. May I ask — do you prefer something bold or elegant this evening?", wines:["Bold Reds","Elegant Whites","Rosé & Champagne"] };
+  setTimeout(() => addMsg(r.txt, 'bot', r.wines), 850);
+}
+
+function sendChat() {
+  const inp = document.getElementById('ci');
+  const v = inp.value.trim();
+  if(!v) return;
+  addMsg(v, 'usr');
+  inp.value = '';
+  const lv = v.toLowerCase();
+  const key = Object.keys(wineDB).find(k => lv.includes(k));
+  const r = wineDB[key] || { txt:"Très bien. Without knowing the exact dish, I would suggest exploring our Burgundy selection for complexity, or a white Rhône for something aromatic and refined. What flavour profile appeals to you this evening — rich and bold, or delicate and mineral?", wines:["Rich & Bold","Delicate & Mineral","Sparkling"] };
+  setTimeout(() => addMsg(r.txt, 'bot', r.wines), 900);
+}
+</script>
+</body>
+</html>
